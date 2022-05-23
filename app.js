@@ -31,8 +31,8 @@ app.get('/video/:url', (req, res) => {
 const runProcess = async () => {
 
   const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox']
+    headless: true,executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox']
   })
   const page = await browser.newPage()
   await page.setRequestInterception(true);
@@ -42,10 +42,10 @@ const runProcess = async () => {
   links = links.slice(0, LIMIT_VIDEO_TO_WATCH)
 
   for (let link of links) {
-      await page.goto(link, { waitUntil: 'load', timeout: 0 })
-      console.log('Go to ' + link)
-      await page.waitForSelector('video');
-      await watchTheVideo(page)
+    await page.goto(link, { waitUntil: 'load', timeout: 0 })
+    console.log('Go to ' + link)
+    await page.waitForSelector('video');
+    await watchTheVideo(page)
   }
   await browser.close()
 }
@@ -54,15 +54,16 @@ const runProcess = async () => {
 const videoByUrl = async (link) => {
 
   const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox']
+    headless: true,executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox']
   })
   const page = await browser.newPage()
-      await page.goto(link, { waitUntil: 'load', timeout: 0 })
-      console.log('Go to ' + link)
-      await page.waitForSelector('video');
-      await watchTheVideo(page)
-        await browser.close()
+  await page.setRequestInterception(true);
+  await page.goto(link, { waitUntil: 'load', timeout: 0 })
+  console.log('Go to ' + link)
+  await page.waitForSelector('video');
+  await watchTheVideo(page)
+  await browser.close()
 }
 
 const getAllUrl = async (page, selector) => {
@@ -71,18 +72,18 @@ const getAllUrl = async (page, selector) => {
 
 const watchTheVideo = async (page) => {
   try {
-      const title = await page.title()
-      const duration = await page.$eval('video', (el) => el.duration)
-      const playButton = await page.$('.ytp-play-button')
+    const title = await page.title()
+    const duration = await page.$eval('video', (el) => el.duration)
+    const playButton = await page.$('.ytp-play-button')
 
-      console.log(title)
+    console.log(title)
 
-      await playButton.click()
-      console.log('Play the video...')
-      await wait(duration * 2 *  1000)
-      console.log('Done! ')
+    await playButton.click()
+    console.log('Play the video...')
+    await wait(duration * 2 * 1000)
+    console.log('Done! ')
   } catch (e) {
-      console.log(e);
+    console.log(e);
   }
 }
 
