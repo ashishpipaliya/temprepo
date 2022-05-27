@@ -28,6 +28,14 @@ app.get('/video/:url', (req, res) => {
   videoByUrl(req.params.url);
 })
 
+app.get('/instance',async (req, res) => {
+  const browser = await puppeteer.launch({
+    headless: true,executablePath: '/usr/bin/google-chrome',
+    args: ['--no-sandbox']
+  })
+  const browserWSEndpoint = browser.wsEndpoint();
+  res.send({'data' : browserWSEndpoint});
+})
 const runProcess = async () => {
 
   const browser = await puppeteer.launch({
