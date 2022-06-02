@@ -1,5 +1,8 @@
 const express = require('express')
 const puppeteer = require('puppeteer-extra')
+const httpProxy = require("http-proxy");
+const host = "143.110.184.161";
+var port = process.env.PORT || 8083;
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
@@ -28,18 +31,36 @@ app.get('/video/:url', (req, res) => {
   videoByUrl(req.params.url);
 })
 
-app.get('/instance',async (req, res) => {
+
+async function createServer(WSEndPoint, host, port) {
+  await httpProxy
+    .createServer({
+      target: WSEndPoint,
+      ws: true,
+      localAddress: host
+    })
+    .listen(port);
+    console.log(`ws://3.110.184.161:${8085}`);
+  return `ws://${host}:${port}`;
+}
+createServer()
+app.get('/instance', async (req, res) => {
   const browser = await puppeteer.launch({
-    headless: true,executablePath: '/usr/bin/google-chrome',
+    headless: true,
+    executablePath: '/usr/bin/google-chrome',
     args: ['--no-sandbox']
   })
   const browserWSEndpoint = browser.wsEndpoint();
-  res.send({'data' : browserWSEndpoint});
+  var d = await createServer(browserWSEndpoint, host, port);
+  res.send({ 'data': d });
 })
+
+
 const runProcess = async () => {
 
   const browser = await puppeteer.launch({
-    headless: true,executablePath: '/usr/bin/google-chrome',
+    headless: true,
+    executablePath: '/usr/bin/google-chrome',
     args: ['--no-sandbox']
   })
   const page = await browser.newPage()
@@ -50,6 +71,7 @@ const runProcess = async () => {
   links = links.slice(0, LIMIT_VIDEO_TO_WATCH)
 
   for (let link of links) {
+    console.log(link);
     await page.goto(link, { waitUntil: 'load', timeout: 0 })
     console.log('Go to ' + link)
     await page.waitForSelector('video');
@@ -62,7 +84,7 @@ const runProcess = async () => {
 const videoByUrl = async (link) => {
 
   const browser = await puppeteer.launch({
-    headless: true,executablePath: '/usr/bin/google-chrome',
+    headless: true, executablePath: '/usr/bin/google-chrome',
     args: ['--no-sandbox']
   })
   const page = await browser.newPage()
@@ -99,8 +121,6 @@ const wait = (time) => new Promise((resolve) => {
   return setTimeout(resolve, time)
 })
 
-
-var port = process.env.PORT || 8080;
-app.listen(port, () => console.log(`Server started at http://localhost:${port}`))
+app.listen(port, () => console.log(`Server started at http://${host}:${port}`))
 
 module.exports = app
